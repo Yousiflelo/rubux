@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" cotent="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Robux Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Force standard digits 123 */
+        * {
+            -webkit-font-feature-settings: "tnum" on, "lnum" on;
+            font-feature-settings: "tnum" on, "lnum" on;
+            font-variant-numeric: tabular-nums;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-text-size-adjust: 100%;
+        }
+        
+        input {
+            font-family: 'Inter', sans-serif !important;
+            direction: ltr !important; 
+            text-align: right !important;
+            font-variant-numeric: lining-nums;
+        }
+
+        .main-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 24px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .mode-btn {
+            transition: all 0.2s ease-in-out;
+        }
+
+        .active-mode {
+            background-color: #3b82f6;
+            color: white;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .input-group {
+            background: #0f172a;
+            border: 2px solid #334155;
+            border-radius: 16px;
+        }
+
+        .input-group:focus-within {
+            border-color: #3b82f6;
+        }
+
+        .btn-convert {
+            background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+            transition: all 0.1s ease;
+        }
+        
+        .btn-convert:active {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body class="p-6" dir="rtl">
+
+    <div class="main-card w-full max-w-md p-8">
+        <div class="text-center mb-10">
+            <h1 class="text-2xl font-bold text-white mb-2">محول العملات لـ Roblox</h1>
+            <p class="text-slate-400 text-sm">أدخل القيمة واضغط تم للتحويل</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 p-1 bg-slate-900 rounded-xl mb-8">
+            <button id="buyMode" class="mode-btn active-mode py-2.5 rounded-lg font-bold text-sm">سعر الشراء</button>
+            <button id="devMode" class="mode-btn text-slate-400 py-2.5 rounded-lg font-bold text-sm">سعر المطورين</button>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Robux Field -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1 text-right">مقدار الروبكس (مضاعفات 40)</label>
+                <div class="input-group flex items-center px-4 py-3">
+                    <span class="text-slate-500 font-bold ml-3">R$</span>
+                    <input type="tel" id="robuxInput" placeholder="0" class="bg-transparent w-full text-xl font-bold focus:outline-none text-white" enterkeyhint="done">
+                </div>
+            </div>
+
+            <!-- Action Button -->
+            <div class="flex justify-center py-2">
+                <button id="convertBtn" class="btn-convert w-full py-4 rounded-xl font-bold text-lg shadow-lg text-white">تـم (تحويل)</button>
+            </div>
+
+            <!-- USD Field -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 px-1 text-right">القيمة بالدولار</label>
+                <div class="input-group flex items-center px-4 py-3">
+                    <span class="text-slate-500 font-bold ml-3">$</span>
+                    <input type="tel" id="usdInput" placeholder="0.00" class="bg-transparent w-full text-xl font-bold focus:outline-none text-white" enterkeyhint="done">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 pt-6 border-t border-slate-700 text-center">
+            <p class="text-slate-500 text-[10px] leading-relaxed">
+                تم ضبط الحساب بناءً على سعر صرف Roblox الرسمي.
+                <br>80 روبوكس تعادل 0.99 دولار تقريباً.
+            </p>
+        </div>
+    </div>
+
+    <script>
+        const robuxInput = document.getElementById('robuxInput');
+        const usdInput = document.getElementById('usdInput');
+        const buyModeBtn = document.getElementById('buyMode');
+        const devModeBtn = document.getElementById('devMode');
+        const convertBtn = document.getElementById('convertBtn');
+
+        let currentRate = 0.012375; 
+        let lastChanged = 'robux';
+
+        function cleanInput(val) {
+            return val.replace(/[^0-9.]/g, '');
+        }
+
+        robuxInput.addEventListener('input', (e) => { 
+            e.target.value = cleanInput(e.target.value);
+            lastChanged = 'robux'; 
+        });
+        
+        usdInput.addEventListener('input', (e) => { 
+            e.target.value = cleanInput(e.target.value);
+            lastChanged = 'usd'; 
+        });
+
+        function setMode(mode) {
+            if (mode === 'buy') {
+                currentRate = 0.012375;
+                buyModeBtn.classList.add('active-mode');
+                buyModeBtn.classList.remove('text-slate-400');
+                devModeBtn.classList.remove('active-mode');
+                devModeBtn.classList.add('text-slate-400');
+            } else {
+                currentRate = 0.0035; 
+                devModeBtn.classList.add('active-mode');
+                devModeBtn.classList.remove('text-slate-400');
+                buyModeBtn.classList.remove('active-mode');
+                buyModeBtn.classList.add('text-slate-400');
+            }
+            // Update results immediately when switching mode if values exist
+            if(robuxInput.value || usdInput.value) handleConversion();
+        }
+
+        function handleConversion() {
+            if (lastChanged === 'robux') {
+                let val = parseFloat(robuxInput.value);
+                if (!isNaN(val)) {
+                    let correctedRobux = Math.round(val / 40) * 40;
+                    if (correctedRobux === 0 && val > 0) correctedRobux = 40;
+                    robuxInput.value = correctedRobux;
+                    usdInput.value = (correctedRobux * currentRate).toFixed(2);
+                }
+            } else if (lastChanged === 'usd') {
+                const val = parseFloat(usdInput.value);
+                if (!isNaN(val)) {
+                    let rawRobux = Math.round(val / currentRate);
+                    let steppedRobux = Math.round(rawRobux / 40) * 40;
+                    robuxInput.value = steppedRobux;
+                    usdInput.value = (steppedRobux * currentRate).toFixed(2);
+                }
+            }
+            // Remove focus to hide keyboard on mobile after clicking "Enter" or "Done"
+            robuxInput.blur();
+            usdInput.blur();
+        }
+
+        // Event listener for Click
+        convertBtn.addEventListener('click', handleConversion);
+        
+        // Event listener for Enter Key
+        [robuxInput, usdInput].forEach(input => {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleConversion();
+                }
+            });
+        });
+
+        buyModeBtn.addEventListener('click', () => setMode('buy'));
+        devModeBtn.addEventListener('click', () => setMode('dev'));
+    </script>
+</body>
+</html>
